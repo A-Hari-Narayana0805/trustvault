@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: trustvault
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT app:app
+    plan: starter
+    disk:
+      name: trustvault-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: AUDIT_HMAC_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/trustvault.db
+      - key: FILE_STORAGE_PATH
+        value: /var/data/files
