@@ -39,3 +39,36 @@ Push to a public GitHub repo, create a Render Web Service, build `pip install -r
 
 ## Honest limitations before real confidential use
 No MFA, password reset, email verification, rate limiting, malware scanning, file content disarm, immutable WORM audit storage, external audit anchoring, file versions, retention/recovery UI, or production PostgreSQL. DOCX/XLSX are extension-validated but not malware-scanned. Add secure cookies behind HTTPS, CSP/security headers, monitoring, backups, and failed/denied-attempt logging. This is a challenge MVP, not a certified enterprise platform.
+
+## Live demo
+
+**Application URL:** https://trustvault-i8e7.onrender.com
+
+The application is deployed on Render. The free hosting instance may take some time to wake up after inactivity.
+
+## Automated security tests
+
+Install the dependencies and run:
+
+```bash
+pip install -r requirements.txt
+python -m pytest -v
+```
+
+The current security test suite contains three tests covering unauthorized document access, immediate permission revocation, and viewer upload restrictions.
+
+## Deployment storage warning
+
+The current free Render configuration uses `/tmp` for database and file storage. This storage is ephemeral, meaning database records and uploaded files may disappear after a restart or redeployment.
+
+Use dummy documents only. Do not upload confidential or personal documents to this demonstration deployment.
+
+## Demo account security
+
+The listed accounts are demonstration accounts only. They must not be reused for real users or confidential information. Rotate demo passwords before sharing the application widely.
+
+## Project documentation
+
+- [API documentation](API.md)
+- [Threat model](THREATS.md)
+- [AI usage record](PROMPTS.md)
