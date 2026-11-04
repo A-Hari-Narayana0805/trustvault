@@ -71,10 +71,40 @@ def access(docid,perm="read"):
 CSS="""<style>
 body{margin:0;background:#0b1020;color:#edf2ff;font:15px system-ui}header{padding:20px 6%;border-bottom:1px solid #293653;display:flex;justify-content:space-between}a{color:#91adff;text-decoration:none}main{max-width:1050px;margin:36px auto;padding:0 20px}.panel{background:#131e33;border:1px solid #2a3958;border-radius:16px;padding:22px;margin:16px 0}.hero{display:flex;justify-content:space-between;align-items:center;gap:20px}.muted{color:#9eabc4}.btn,button{background:#91adff;color:#081126;border:0;padding:11px 15px;border-radius:9px;font-weight:bold;cursor:pointer}input,select{display:block;width:100%;max-width:480px;padding:11px;margin:7px 0 15px;background:#0b1426;color:white;border:1px solid #33415d;border-radius:8px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:12px;border-bottom:1px solid #2a3958}.pill{background:#283a5b;padding:4px 9px;border-radius:15px}.flash{padding:12px;background:#174238;border-radius:8px}.grid{display:flex;gap:14px;flex-wrap:wrap}.grid .panel{flex:1;min-width:160px}.stat{font-size:26px;font-weight:bold}
 </style>"""
-def page(title,body):
-    u=user()
-    nav=(f'{u["username"]} · {u["role"]}　<a href="/">Workspace</a>　'+('<a href="/admin">Admin</a>　' if u["role"]=="admin" else '')+'<a href="/logout">Sign out</a>') if u else '<a href="/login">Sign in</a>'
-    return render_template_string("""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{title}} · TrustVault</title>"""+CSS+"""</head><body><header><b>Trust<span style="color:#91adff">Vault</span></b><nav>"""+nav+"""</nav></header><main>{% for m in get_flashed_messages() %}<p class="flash">{{m}}</p>{% endfor %}"""+body+"""</main></body></html>""",title=title,csrf=session.get("csrf"))
+def page(title, body):
+    u = user()
+
+    if u:
+        csrf_value = session.get("csrf", "")
+        logout_form = (
+            f'<form method="post" action="/logout" style="display:inline">'
+            f'<input type="hidden" name="_csrf" value="{csrf_value}">'
+            f'<button type="submit">Sign out</button>'
+            f'</form>'
+        )
+
+        nav = (
+            f'{u["username"]} · {u["role"]}　'
+            f'<a href="/">Workspace</a>　'
+            + ('<a href="/admin">Admin</a>　' if u["role"] == "admin" else '')
+            + logout_form
+        )
+    else:
+        nav = '<a href="/login">Sign in</a>'
+
+    return render_template_string(
+        """<!doctype html><html><head>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>{{title}} · TrustVault</title>""" + CSS +
+        """</head><body><header>
+        <b>Trust<span style="color:#91adff">Vault</span></b>
+        <nav>""" + nav + """</nav></header>
+        <main>{% for m in get_flashed_messages() %}
+        <p class="flash">{{m}}</p>{% endfor %}""" + body +
+        """</main></body></html>""",
+        title=title,
+        csrf=session.get("csrf")
+    )
 @app.before_request
 def token():
     if "csrf" not in session: session["csrf"]=secrets.token_urlsafe(32)
@@ -86,10 +116,13 @@ def login_post():
     if u and u["active"] and check_password_hash(u["password"],request.form.get("password","")):
         session.clear();session["uid"]=u["id"];session["csrf"]=secrets.token_urlsafe(32);audit(u["id"],"login");return redirect("/")
     flash("Invalid credentials.");return redirect("/login")
-@app.get("/logout")
+@app.post("/logout")
 @login_required
 def logout():
-    audit(user()["id"],"logout");session.clear();return redirect("/login")
+    csrf()
+    audit(user()["id"], "logout")
+    session.clear()
+    return redirect("/login")
 @app.get("/")
 @login_required
 def home():
