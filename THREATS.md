@@ -23,3 +23,28 @@
 3. Revocation denies the next request.
 4. Never place document bytes in a public/static directory.
 5. Never claim HMAC audit is immutable against an attacker holding both database and key.
+## Security testing evidence
+
+The following checks were performed during manual and automated testing.
+
+| Test | Verification performed | Observed result |
+|---|---|---|
+| Unauthorized document access | Opened a document directly without permission | Access blocked with Not Found response |
+| Permission revocation | Granted viewer access, revoked it, and retried | Viewer could no longer access the document |
+| Viewer upload restriction | Attempted upload as viewer | Upload blocked |
+| Automated isolation test | Ran `test_ungranted_user_cannot_read_or_download` | Passed |
+| Automated revocation test | Ran `test_revocation_immediate` | Passed |
+| Automated role test | Ran `test_viewer_cannot_upload` | Passed |
+
+**Automated test result: 3 passed.**
+## Deployment limitations and residual risks
+
+- The current Render deployment uses `/tmp` for database and file storage. Data may be lost when the service restarts or is redeployed.
+- The application does not provide comprehensive malware scanning.
+- HMAC-linked audit records are not immutable if an attacker compromises both the database and HMAC key.
+- Downloaded copies cannot be recalled after permission revocation.
+- Backup, recovery and retention automation are not implemented.
+
+## Audit logging verification still required
+
+The application code contains an `access_denied` audit call for inaccessible document requests. However, the corresponding event was not visible in the admin dashboard during our manual verification. This discrepancy remains to be investigated and should not be considered a fully verified audit test.
