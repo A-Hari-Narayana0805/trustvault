@@ -42,7 +42,7 @@ No MFA, password reset, email verification, rate limiting, malware scanning, fil
 
 ## Live demo
 
-**Application URL:** https://trustvault-i8e7.onrender.com
+**Application URL:** (https://trustvault-l8e7.onrender.com/)
 
 The application is deployed on Render. The free hosting instance may take some time to wake up after inactivity.
 
